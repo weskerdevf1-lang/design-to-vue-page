@@ -1,32 +1,63 @@
-design-to-vue-page Skill 说明
-功能概述
-将 Figma 或 Zeplin 设计稿 1:1 还原为 Vue/Nuxt 页面。自动识别设计工具类型，调用对应 MCP 工具完成节点解析、图片资产提取、样式转换与代码生成。
+# 设计稿 → Vue 页面生成
 
-适用场景
-用户提供 Figma 链接（figma.com/design/...）并要求生成页面
-用户提供 Zeplin 链接（zpl.io/... 或 app.zeplin.io/...）并要求生成页面
-要求还原设计稿、1:1 实现 UI、按设计图生成 Vue 文件
-工具支持
-设计工具	MCP 服务	核心能力
-Figma	user-f2c-mcp	获取设计图（JPG/PNG/SVG）、F2C 代码提取
-Zeplin	user-zeplin	获取屏幕图层树、下载可导出资产、读取 Token
-工作流程
-1. 识别 URL → 判断 Figma / Zeplin
-2. 解析设计数据（节点结构 / 图层树）
-3. 提取图片资产（2x 规范、命名规范、压缩）
-4. 读取 vue-page-conventions.md（通用编码约定）
-5. 生成 Vue 页面代码（模板 + Less 样式）
-关键规则
-规则	Figma	Zeplin
-坐标单位	F2C 输出 2x，实现时 ÷2	1x，直接使用
-图片导出	scaleSize=2（必须 2x）	@2x 导出规格或 sips 放大
-尺寸换算	px ÷ 20 = rem	px ÷ 20 = rem
-中间容器偏移	必须累加所有父层偏移量	直接读 rect 坐标
-背景纹理	需从 SVG 手动提取 Pattern	图层 fills 直接获取
-依赖文件
-文件	用途
-vue-page-conventions.md	通用编码约定（17 个规范节，生成代码前必读）
-conventions.md	项目结构、Less 变量、路径约定
-触发示例
-请根据这个 Figma 链接生成页面：https://www.figma.com/design/xxx/...
-请按 Zeplin 设计稿还原这个页面：https://zpl.io/xxxx
+适用于 **Figma**（figma.com）和 **Zeplin**（zpl.io / app.zeplin.io）两种设计工具，skill 会根据链接自动识别工作流。
+
+---
+
+## 基础用法
+
+```
+请阅读并严格遵循 @skills/design-to-vue-page/SKILL.md 中的所有规则，
+基于以下设计稿链接生成 Vue 页面：
+
+设计稿链接：https://www.figma.com/design/xxx?node-id=xxx
+输出路径：app/pages/[页面名]/index.vue
+```
+
+---
+
+## 完整用法（推荐）
+
+```
+请阅读并严格遵循 @skills/design-to-vue-page/SKILL.md 中的所有规则，
+基于以下设计稿链接生成 Vue 页面：
+
+设计稿链接：https://www.figma.com/design/xxx?node-id=xxx
+输出路径：app/pages/[页面名]/index.vue
+
+要求：
+- 1:1 还原设计稿，包括尺寸、间距、颜色、字体
+- 响应式适配 1920 / 1440 / 1280px
+- 所有样式用 rem（基准 20px），禁止 Less & 嵌套
+- class 命名语义化 Kebab-case，禁止 Tailwind
+- 图片文件名语义化，下载到 public/images/[页面名]/
+```
+
+---
+
+## 修复 / 提升还原度
+
+```
+请阅读并严格遵循 @skills/design-to-vue-page/SKILL.md 中的所有规则，
+对比以下设计稿与当前页面 @app/pages/[页面名]/index.vue 的差异并修复：
+
+设计稿链接：https://www.figma.com/design/xxx?node-id=xxx
+目标文件：app/pages/[页面名]/index.vue
+
+重点检查：
+- Hero/Banner 尺寸与定位（vw + aspect-ratio）
+- 文字描边（-webkit-text-stroke + paint-order）
+- 深色背景文字颜色
+- flex 容器方向与 margin% 基准维度
+- Less 样式中无 & 嵌套残留
+```
+
+---
+
+## 注意事项
+
+- prompt 里必须包含 `@skills/design-to-vue-page/SKILL.md` 的 `@` 引用，AI 才会读取完整 skill 规则
+- **Figma** 设计稿坐标为 **2x**，换算时所有尺寸除以 2
+- **Zeplin** 坐标为 **1x**，直接使用无需除以 2
+- Zeplin：`exportable: true` 的图层调用 `download_layer_asset` 下载；`exportable: false` 的图层用 CSS 实现
+- 图片下载后命名必须语义化，禁止使用 UUID 文件名
